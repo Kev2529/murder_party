@@ -1,4 +1,4 @@
-import { randomBytes } from "crypto";
+import { randomBytes, randomInt } from "crypto";
 import { GameState } from "./engine/types";
 
 export type Party = {
@@ -21,10 +21,12 @@ const WORDS = ["BLOODY", "RAVEN", "OPIUM", "VELVET", "CRIMSON", "SHADOW", "AMBRE
 export function newCode(): string {
   let code: string;
   do {
-    const word = WORDS[Math.floor(Math.random() * WORDS.length)];
+    // randomInt (CSPRNG) plutôt que Math.random : le code identifie une
+    // partie active et ne doit pas être prévisible même approximativement.
+    const word = WORDS[randomInt(WORDS.length)];
     // 4 chiffres (1000-9999) : espace plus large, décourage l'énumération
     // du code (défense en profondeur, en plus du rate-limit sur /join et GET).
-    code = `${word}-${Math.floor(1000 + Math.random() * 9000)}`;
+    code = `${word}-${randomInt(1000, 10000)}`;
   } while (parties.has(code));
   return code;
 }
