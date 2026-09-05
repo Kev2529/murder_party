@@ -92,12 +92,15 @@ export type GameEvent = Scenario["events"][number];
 
 // ---------- Actions du MJ ----------
 
-export type Action =
-  | { type: "openAct"; actId: string }
-  | { type: "triggerEvent"; eventId: string }
-  | { type: "giveClue"; clueId: string; to: string }
-  | { type: "revealInfo"; infoId: string; to: string }
-  | { type: "announce"; text: string };
+export const ActionSchema = z.discriminatedUnion("type", [
+  z.object({ type: z.literal("openAct"), actId: z.string() }),
+  z.object({ type: z.literal("triggerEvent"), eventId: z.string() }),
+  z.object({ type: z.literal("giveClue"), clueId: z.string(), to: z.string() }),
+  z.object({ type: z.literal("revealInfo"), infoId: z.string(), to: z.string() }),
+  z.object({ type: z.literal("announce"), text: z.string().min(1).max(500) }),
+]);
+
+export type Action = z.infer<typeof ActionSchema>;
 
 export type LogEntry = { at: number; action: Action; summary: string };
 

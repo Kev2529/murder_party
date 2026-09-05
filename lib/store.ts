@@ -22,7 +22,9 @@ export function newCode(): string {
   let code: string;
   do {
     const word = WORDS[Math.floor(Math.random() * WORDS.length)];
-    code = `${word}-${Math.floor(100 + Math.random() * 900)}`;
+    // 4 chiffres (1000-9999) : espace plus large, décourage l'énumération
+    // du code (défense en profondeur, en plus du rate-limit sur /join et GET).
+    code = `${word}-${Math.floor(1000 + Math.random() * 9000)}`;
   } while (parties.has(code));
   return code;
 }

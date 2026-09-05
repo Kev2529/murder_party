@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getParty, newToken } from "@/lib/store";
+import { rateLimit } from "@/lib/rateLimit";
 
 export async function POST(req: NextRequest, ctx: { params: Promise<{ code: string }> }) {
+  if (!rateLimit(req, "join", 20, 60_000))
+    return NextResponse.json({ error: "Trop de tentatives, réessayez dans un instant" }, { status: 429 });
+
   const { code } = await ctx.params;
   const party = getParty(code);
   if (!party) return NextResponse.json({ error: "Partie introuvable" }, { status: 404 });

@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getParty } from "@/lib/store";
 import { gmView, playerView } from "@/lib/engine/engine";
+import { rateLimit } from "@/lib/rateLimit";
 
 // GET /api/parties/[code] — token via header "Authorization: Bearer …", jamais en URL.
 // Sans token : infos publiques du lobby. Token MJ : vue MJ. Token joueur : vue joueur.
 export async function GET(req: NextRequest, ctx: { params: Promise<{ code: string }> }) {
+  // Limite large : le polling légitime (toutes les 2s, cf usePoll) doit passer
+  // même depuis une IP partagée par plusieurs joueurs (même wifi).
+  if (!rateLimit(req, "party-get", 120, 60_000))
+    return NextResponse.json({ error: "Trop de requêtes, réessayez dans un instant" }, { status: 429 });
+
   const { code } = await ctx.params;
   const party = getParty(code);
   if (!party) return NextResponse.json({ error: "Partie introuvable" }, { status: 404 });
